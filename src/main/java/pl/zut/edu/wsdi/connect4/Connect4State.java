@@ -54,19 +54,19 @@ public class Connect4State extends StateImpl {
 
     private BoardStatus toBoardStatus(BoardType boardType) {
         if (boardType == BoardType.empty) {
-            throw new RuntimeException("to board status do not handle BoardType.empty");
+            throw new RuntimeException("toBoardStatus do not handle BoardType.empty");
         }
         if (boardType == boardType.playerOne) {
             return BoardStatus.winnerPlayerOne;
         } else {
-
             return BoardStatus.winnerPlayerTwo;
-
         }
 
     }
 
     public BoardStatus checkWin() {
+
+        //Check rows
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
             for (int column = 0; column < this.columns; column++) {
@@ -77,6 +77,8 @@ public class Connect4State extends StateImpl {
                 return toBoardStatus(win);
             }
         }
+
+        //Check columns
         for (int column = 0; column < this.columns; column++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
             for (int row = 0; row < this.rows; row++) {
@@ -87,6 +89,41 @@ public class Connect4State extends StateImpl {
                 return toBoardStatus(win);
             }
         }
+
+        //check diagonals, direction down - \
+        for (int row = 0; row < this.rows; row++) {
+            List<BoardType> sequence = new ArrayList<BoardType>();
+            for (int index = 0; index < this.rows; index++) {
+                if (index + row < this.rows && index < this.columns) {
+                    sequence.add(board[index + row][index]);
+                }
+            }
+            BoardType win = checkSequence(sequence);
+            if (win != BoardType.empty) {
+                return toBoardStatus(win);
+            }
+            if (sequence.size() == 4) {
+                break;
+            }
+        }
+
+        //check diagonals, direction up - \
+        for (int column = 0; column < this.columns; column++) {
+            List<BoardType> sequence = new ArrayList<BoardType>();
+            for (int index = 0; index < this.columns; index++) {
+                if (index < this.rows && index + column < this.columns) {
+                    sequence.add(board[index][index + column]);
+                }
+            }
+            BoardType win = checkSequence(sequence);
+            if (win != BoardType.empty) {
+                return toBoardStatus(win);
+            }
+            if (sequence.size() == 4) {
+                break;
+            }
+        }
+
         return BoardStatus.notEnded;
     }
 
