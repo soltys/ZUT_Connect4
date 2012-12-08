@@ -48,6 +48,7 @@ public class Connect4State extends StateImpl {
         for (int row = this.rows - 1; row >= 0; row--) {
             if (board[row][column] == BoardType.empty) {
                 board[row][column] = player;
+                return;
             }
         }
     }
@@ -64,13 +65,19 @@ public class Connect4State extends StateImpl {
 
     }
 
+    private void safeSequenceAdd(List<BoardType> sequence, int row, int column) {
+        if (row >= 0 && column >= 0 && row < this.rows && column < this.columns) {
+            sequence.add(board[row][column]);
+        }
+    }
+
     public BoardStatus checkWin() {
 
         //Check rows
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
             for (int column = 0; column < this.columns; column++) {
-                sequence.add(board[row][column]);
+                safeSequenceAdd(sequence, row, column);
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
@@ -82,7 +89,7 @@ public class Connect4State extends StateImpl {
         for (int column = 0; column < this.columns; column++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
             for (int row = 0; row < this.rows; row++) {
-                sequence.add(board[row][column]);
+                safeSequenceAdd(sequence, row, column);
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
@@ -93,10 +100,9 @@ public class Connect4State extends StateImpl {
         //check diagonals, direction down - \
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
-            for (int index = 0; index < this.rows; index++) {
-                if (index + row < this.rows && index < this.columns) {
-                    sequence.add(board[index + row][index]);
-                }
+            for (int column = 0; column < this.columns; column++) {
+                safeSequenceAdd(sequence, column + row, column);
+
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
@@ -110,10 +116,8 @@ public class Connect4State extends StateImpl {
         //check diagonals, direction up - \
         for (int column = 0; column < this.columns; column++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
-            for (int index = 0; index < this.columns; index++) {
-                if (index < this.rows && index + column < this.columns) {
-                    sequence.add(board[index][index + column]);
-                }
+            for (int rows = 0; rows < this.rows; rows++) {
+                safeSequenceAdd(sequence, rows, rows + column);
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
@@ -124,6 +128,34 @@ public class Connect4State extends StateImpl {
             }
         }
 
+        //check diagonals, direction up /
+        for (int column = this.columns - 1; column >= 0; column--) {
+            List<BoardType> sequence = new ArrayList<BoardType>();
+            for (int row = 0; row < this.rows; row++) {
+                safeSequenceAdd(sequence, row, column - row);
+            }
+            BoardType win = checkSequence(sequence);
+            if (win != BoardType.empty) {
+                return toBoardStatus(win);
+            }
+            if (sequence.size() == 4) {
+                break;
+            }
+        }
+        //check diagonals, direction down /
+        for (int row = 0; row < this.rows; row++) {
+            List<BoardType> sequence = new ArrayList<BoardType>();
+            for (int column = this.columns - 1; column >= 0; column--) {
+                safeSequenceAdd(sequence, row+(this.columns - column), column);
+            }
+            BoardType win = checkSequence(sequence);
+            if (win != BoardType.empty) {
+                return toBoardStatus(win);
+            }
+            if (sequence.size() == 4) {
+                break;
+            }
+        }
         return BoardStatus.notEnded;
     }
 
@@ -131,22 +163,19 @@ public class Connect4State extends StateImpl {
         if (sequence.size() < 4) {
             return BoardType.empty;
         }
-        int startIndex = 0;
-        int endIndex = 3;
-        while (Math.abs(endIndex - startIndex) == 3) {
-            BoardType win = checkFour(sequence.get(startIndex), sequence.get(startIndex + 1),
-                                      sequence.get(startIndex + 2), sequence.get(startIndex + 3));
+
+        for (int index = 0; index < sequence.size() -3; index++) {
+            BoardType win = checkFour(sequence.get(index), sequence.get(index + 1),
+                    sequence.get(index + 2), sequence.get(index + 3));
             if (win != BoardType.empty) {
                 return win;
             }
-            startIndex = endIndex;
-            endIndex = Math.min(endIndex + 3, sequence.size());
         }
         return BoardType.empty;
     }
 
     private BoardType checkFour(BoardType one, BoardType two,
-                                BoardType three, BoardType four) {
+            BoardType three, BoardType four) {
         if (one == BoardType.empty || two == BoardType.empty
                 || three == BoardType.empty || four == BoardType.empty) {
             return BoardType.empty;
@@ -184,8 +213,8 @@ public class Connect4State extends StateImpl {
             }
             result.append("\n");
         }
-        result.append("\n");
-        for (int i = 1; i < columns; i++) {
+
+        for (int i = 1; i <= columns; i++) {
             result.append(i).append(" ");
 
         }
