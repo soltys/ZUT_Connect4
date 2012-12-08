@@ -82,7 +82,7 @@ public class Connect4State extends StateImpl {
         if (boardType == BoardType.empty) {
             throw new RuntimeException("toBoardStatus do not handle BoardType.empty");
         }
-        if (boardType == boardType.playerOne) {
+        if (boardType == BoardType.playerOne) {
             return BoardStatus.winnerPlayerOne;
         } else {
             return BoardStatus.winnerPlayerTwo;
@@ -98,6 +98,13 @@ public class Connect4State extends StateImpl {
 
     public BoardStatus checkWin() {
 
+        //Check top row
+        for (int column = 0; column < this.columns; column++) {
+            if (board[0][column] != BoardType.empty) {
+                return toBoardStatus(board[0][column] );
+            }
+        }
+        
         //Check rows
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
@@ -141,8 +148,8 @@ public class Connect4State extends StateImpl {
         //check diagonals, direction up - \
         for (int column = 0; column < this.columns; column++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
-            for (int rows = 0; rows < this.rows; rows++) {
-                safeSequenceAdd(sequence, rows, rows + column);
+            for (int row = 0; row < this.rows; row++) {
+                safeSequenceAdd(sequence, row, row + column);
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
