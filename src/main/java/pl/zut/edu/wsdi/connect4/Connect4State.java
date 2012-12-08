@@ -1,7 +1,6 @@
 package pl.zut.edu.wsdi.connect4;
 
 import java.util.ArrayList;
-import java.util.EmptyStackException;
 import java.util.List;
 import pl.zut.edu.wsdi.klesk.math.search.StateImpl;
 
@@ -28,6 +27,32 @@ public class Connect4State extends StateImpl {
                 board[row][column] = BoardType.empty;
             }
         }
+    }
+
+    public Connect4State(Connect4State parentState) {
+        super(parentState);
+        this.rows = parentState.getRows();
+        this.columns = Math.min(parentState.getColumns(), 10);
+
+        board = new BoardType[this.rows][this.columns];
+
+        for (int row = 0; row < this.rows; row++) {
+            for (int column = 0; column < this.columns; column++) {
+                this.board[row][column] = parentState.getBoardValue(row, column);
+            }
+        }
+    }
+
+    public BoardType[][] getBoard() {
+        return board;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public int getColumns() {
+        return columns;
     }
 
     public BoardType getBoardValue(int row, int column) {
@@ -146,7 +171,7 @@ public class Connect4State extends StateImpl {
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
             for (int column = this.columns - 1; column >= 0; column--) {
-                safeSequenceAdd(sequence, row+(this.columns - column), column);
+                safeSequenceAdd(sequence, row + (this.columns - column), column);
             }
             BoardType win = checkSequence(sequence);
             if (win != BoardType.empty) {
@@ -164,7 +189,7 @@ public class Connect4State extends StateImpl {
             return BoardType.empty;
         }
 
-        for (int index = 0; index < sequence.size() -3; index++) {
+        for (int index = 0; index < sequence.size() - 3; index++) {
             BoardType win = checkFour(sequence.get(index), sequence.get(index + 1),
                     sequence.get(index + 2), sequence.get(index + 3));
             if (win != BoardType.empty) {
