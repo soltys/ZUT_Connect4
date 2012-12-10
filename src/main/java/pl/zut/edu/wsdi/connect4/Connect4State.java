@@ -90,6 +90,27 @@ public class Connect4State extends StateImpl {
 
     }
 
+    @Override
+    public boolean isAdmissible() {
+        return true;
+    }
+
+    @Override
+    public double computeHeuristicGrade() {
+        double h1 = checkWin() == BoardStatus.winnerPlayerOne ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        double h2 = checkWin() == BoardStatus.winnerPlayerTwo ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        if (h1 == Double.POSITIVE_INFINITY || h1 == Double.NEGATIVE_INFINITY) {
+            setH(h1);
+        }
+        else
+        {
+            setH(h2);
+        }
+        return this.h;
+    }
+
+    
+    
     private void safeSequenceAdd(List<BoardType> sequence, int row, int column) {
         if (row >= 0 && column >= 0 && row < this.rows && column < this.columns) {
             sequence.add(board[row][column]);

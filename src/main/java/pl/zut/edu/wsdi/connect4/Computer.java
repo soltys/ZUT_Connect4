@@ -8,7 +8,7 @@ package pl.zut.edu.wsdi.connect4;
  *
  * @author Soltys
  */
-class Computer implements IPlayer
+class Computer extends Player
 {
 
     public Computer()

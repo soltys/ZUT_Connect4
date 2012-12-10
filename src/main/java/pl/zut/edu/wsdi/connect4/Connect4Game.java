@@ -11,16 +11,18 @@ package pl.zut.edu.wsdi.connect4;
 public class Connect4Game {
 
     private Connect4State currentState;
-    private final IPlayer playerOne;
-    private final IPlayer playerTwo;
-    private IPlayer currentPlayer;
+    private final Player playerOne;
+    private final Player playerTwo;
+    private Player currentPlayer;
     private BoardType turn;
 
-    public Connect4Game(int rows, int columns, IPlayer playerOne, IPlayer playerTwo) {
+    public Connect4Game(int rows, int columns, Player playerOne, Player playerTwo) {
 
         currentState = new Connect4State(rows, columns);
         this.playerOne = playerOne;
+        this.playerOne.setPlayerType(BoardType.playerOne);
         this.playerTwo = playerTwo;
+        this.playerTwo.setPlayerType(BoardType.playerTwo);
         currentPlayer = playerOne;
     }
 
@@ -36,7 +38,8 @@ public class Connect4Game {
         BoardStatus gameStatus = BoardStatus.notEnded;
         while (gameStatus == BoardStatus.notEnded) {
             System.out.println(currentState);
-            currentPlayer.getMove(currentState);
+            int columnMove = currentPlayer.getMove(currentState);
+            currentState.Move(currentPlayer.getPlayerType(), columnMove);
             gameStatus = currentState.checkWin();
             switchPlayers();
         }
@@ -47,7 +50,7 @@ public class Connect4Game {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Connect4Game game = new Connect4Game(7, 7, new Human(), new Computer());
+        Connect4Game game = new Connect4Game(7, 7, new Human(), new Human());        
         game.playGame();
     }
 
@@ -61,5 +64,6 @@ public class Connect4Game {
                 System.out.print("Player Two Wins");
             }
         }
+        System.out.print("\n");
     }
 }
