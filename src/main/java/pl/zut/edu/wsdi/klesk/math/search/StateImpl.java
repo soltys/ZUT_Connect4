@@ -57,8 +57,7 @@ public abstract class StateImpl implements State {
 	 * @param aParent reference to the parent to be set.
 	 */
 	public StateImpl(State aParent) {
-		parent = aParent;
-		h = computeHeuristicGrade();
+		parent = aParent;		
 	}
 
 	/* (non-Javadoc)
