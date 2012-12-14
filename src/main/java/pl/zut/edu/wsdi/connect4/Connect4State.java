@@ -13,6 +13,8 @@ public class Connect4State extends StateImpl {
     private BoardType[][] board;
     private int rows;
     private int columns;
+    BoardType turn = BoardType.playerOne;
+
 
     public Connect4State(int rows, int columns) {
         super(null);
@@ -41,6 +43,20 @@ public class Connect4State extends StateImpl {
                 this.board[row][column] = parentState.getBoardValue(row, column);
             }
         }
+
+        turn = parentState.turn;
+        computeHeuristicGrade();
+    }
+
+    public BoardType getTurn() {
+        return turn;
+    }
+
+    public void setTurn(BoardType turn) {
+        this.turn = turn;
+    }
+    public void switchPlayers() {
+        turn = (turn == BoardType.playerOne) ? BoardType.playerTwo : BoardType.playerOne;
     }
 
     public BoardType[][] getBoard() {
@@ -69,13 +85,18 @@ public class Connect4State extends StateImpl {
      * @param player
      * @param column
      */
-    public void Move(BoardType player, int column) {
+    public boolean move(BoardType player, int column) {
         for (int row = this.rows - 1; row >= 0; row--) {
             if (board[row][column] == BoardType.empty) {
                 board[row][column] = player;
-                return;
+                return true;
             }
         }
+        return false;
+    }
+
+    public boolean move(int column) {
+       return move(turn, column);
     }
 
     private BoardStatus toBoardStatus(BoardType boardType) {
@@ -97,20 +118,26 @@ public class Connect4State extends StateImpl {
 
     @Override
     public double computeHeuristicGrade() {
-        double h1 = checkWin() == BoardStatus.winnerPlayerOne ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        double h2 = checkWin() == BoardStatus.winnerPlayerTwo ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        double h1;
+        double h2;
+        final BoardStatus winStatus = checkWin();
+        if (winStatus == BoardStatus.notEnded) {
+            h1 = 0;
+            h2 = 0;
+            setH(h1);
+            return this.h;
+        }
+
+        h1 = winStatus == toBoardStatus(Computer.maxPlayer) ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        h2 = winStatus == toBoardStatus(Computer.minPlayer) ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
         if (h1 == Double.POSITIVE_INFINITY || h1 == Double.NEGATIVE_INFINITY) {
             setH(h1);
-        }
-        else
-        {
+        } else {
             setH(h2);
         }
         return this.h;
     }
 
-    
-    
     private void safeSequenceAdd(List<BoardType> sequence, int row, int column) {
         if (row >= 0 && column >= 0 && row < this.rows && column < this.columns) {
             sequence.add(board[row][column]);
@@ -122,10 +149,10 @@ public class Connect4State extends StateImpl {
         //Check top row
         for (int column = 0; column < this.columns; column++) {
             if (board[0][column] != BoardType.empty) {
-                return toBoardStatus(board[0][column] );
+                return toBoardStatus(board[0][column]);
             }
         }
-        
+
         //Check rows
         for (int row = 0; row < this.rows; row++) {
             List<BoardType> sequence = new ArrayList<BoardType>();
@@ -219,7 +246,7 @@ public class Connect4State extends StateImpl {
 
         for (int index = 0; index < sequence.size() - 3; index++) {
             BoardType win = checkFour(sequence.get(index), sequence.get(index + 1),
-                    sequence.get(index + 2), sequence.get(index + 3));
+                                      sequence.get(index + 2), sequence.get(index + 3));
             if (win != BoardType.empty) {
                 return win;
             }
@@ -228,7 +255,7 @@ public class Connect4State extends StateImpl {
     }
 
     private BoardType checkFour(BoardType one, BoardType two,
-            BoardType three, BoardType four) {
+                                BoardType three, BoardType four) {
         if (one == BoardType.empty || two == BoardType.empty
                 || three == BoardType.empty || four == BoardType.empty) {
             return BoardType.empty;

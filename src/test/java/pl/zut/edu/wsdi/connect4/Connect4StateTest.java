@@ -16,10 +16,11 @@ public class Connect4StateTest {
     @Test
     public void moveTest() {
         Connect4State state = new Connect4State(2, 2);
-        state.Move(BoardType.playerOne, 1);
+        state.move(BoardType.playerOne, 1);
         assertEquals(BoardType.playerOne, state.getBoardValue(1, 1));
     }
     // <editor-fold desc="Constuctors tests">
+
     @Test
     public void normal_Constuctor() {
         final int rows = 4;
@@ -50,7 +51,7 @@ public class Connect4StateTest {
                                       randomGenerator.nextInt(columns),
                                       BoardType.playerTwo);
         }
-        
+
         Connect4State childState = new Connect4State(parentState);
         assertSame(parentState, childState.getParent());
         assertEquals(rows, childState.getRows());
@@ -58,20 +59,57 @@ public class Connect4StateTest {
         assertEquals(rows, childState.getBoard().length);
         for (int row = 0; row < rows; row++) {
             for (int column = 0; column < columns; column++) {
-                assertEquals(parentState.getBoard()[row][column], 
-                        childState.getBoard()[row][column]);
+                assertEquals(parentState.getBoard()[row][column],
+                             childState.getBoard()[row][column]);
             }
         }
     }
     // </editor-fold>
-    
+
     // <editor-fold desc="Check Win tests">
+    @Test
+    public void checkWin_empty_board() {
+        Connect4State state = new Connect4State(4, 4);
+
+        assertEquals(BoardStatus.notEnded, state.checkWin());
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        System.out.println(state);
+    }
+
+      @Test
+    public void checkWin_one_move_not_ended_7x7() {
+        Connect4State state = new Connect4State(4, 4);
+        state.move(BoardType.playerOne, 3);
+        assertEquals(BoardStatus.notEnded, state.checkWin());
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        System.out.println(state);
+    }
+
+    @Test
+    public void checkWin_one_move_not_ended() {
+        Connect4State state = new Connect4State(4, 4);
+        state.move(BoardType.playerOne, 2);
+        assertEquals(BoardStatus.notEnded, state.checkWin());
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        System.out.println(state);
+    }
+
+    @Test
+    public void checkWin_two_moves_not_ended() {
+        Connect4State state = new Connect4State(4, 4);
+        state.move(BoardType.playerOne, 2);
+        state.move(BoardType.playerTwo, 2);
+        assertEquals(BoardStatus.notEnded, state.checkWin());
+        System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());
+        System.out.println(state);
+    }
+
     @Test
     public void checkWin_horizontalLine() {
         Connect4State state = new Connect4State(4, 4);
 
         for (int i = 0; i < 4; i++) {
-            state.Move(BoardType.playerOne, i);
+            state.move(BoardType.playerOne, i);
         }
 
         assertEquals(BoardStatus.winnerPlayerOne, state.checkWin());
@@ -83,7 +121,7 @@ public class Connect4StateTest {
     public void checkWin_verticalLine() {
         Connect4State state = new Connect4State(4, 4);
         for (int i = 0; i < 4; i++) {
-            state.Move(BoardType.playerOne, 0);
+            state.move(BoardType.playerOne, 0);
         }
         assertEquals(BoardStatus.winnerPlayerOne, state.checkWin());
         System.out.println(Thread.currentThread().getStackTrace()[1].getMethodName());

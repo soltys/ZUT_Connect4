@@ -32,14 +32,15 @@ public class Connect4Game {
         } else {
             currentPlayer = playerOne;
         }
+        currentState.switchPlayers();
     }
 
     public void playGame() {
         BoardStatus gameStatus = BoardStatus.notEnded;
         while (gameStatus == BoardStatus.notEnded) {
             System.out.println(currentState);
-            int columnMove = currentPlayer.getMove(currentState);
-            currentState.Move(currentPlayer.getPlayerType(), columnMove);
+            int columnMove = currentPlayer.getMove(new Connect4State(currentState));
+            currentState.move(currentPlayer.getPlayerType(), columnMove);
             gameStatus = currentState.checkWin();
             switchPlayers();
         }
@@ -50,7 +51,7 @@ public class Connect4Game {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Connect4Game game = new Connect4Game(7, 7, new Human(), new Human());        
+        Connect4Game game = new Connect4Game(7, 7, new Human(), new Computer());
         game.playGame();
     }
 
