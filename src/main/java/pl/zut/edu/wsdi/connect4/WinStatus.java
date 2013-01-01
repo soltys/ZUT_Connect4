@@ -8,9 +8,8 @@ package pl.zut.edu.wsdi.connect4;
  *
  * @author Soltys
  */
-public enum BoardStatus
-{
-    notEnded,
-    winnerPlayerOne,
-    winnerPlayerTwo,
+public enum WinStatus {
+        notEnded,
+    winnerComputer,
+    winnerHumanPlayer,
 }
