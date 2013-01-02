@@ -1,164 +1,159 @@
 package pl.zut.edu.wsdi.connect4;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.math.*;
 import java.util.ArrayList;
 import java.util.List;
+
 import pl.zut.edu.wsdi.klesk.math.search.StateImpl;
 
-/**
- *
- * @author Soltys
- */
-public class Connect4State extends StateImpl {
+public final class Connect4State extends StateImpl {
 
-    private BoardType[][] board;
+    private Players[][] board = null;
     private int rows;
     private int columns;
-
-    public Connect4State(int rows, int columns) {
-        super(null);
-
-        this.rows = rows;
-        this.columns = Math.min(columns, 10);
-
-        board = new BoardType[this.rows][this.columns];
-
-        for (int row = 0; row < this.rows; row++) {
-            for (int column = 0; column < this.columns; column++) {
-                board[row][column] = BoardType.empty;
-            }
-        }
-    }
-
-    public Connect4State(Connect4State parentState) {
-        super(parentState);
-        this.rows = parentState.getRows();
-        this.columns = Math.min(parentState.getColumns(), 10);
-
-        board = new BoardType[this.rows][this.columns];
-
-        for (int row = 0; row < this.rows; row++) {
-            for (int column = 0; column < this.columns; column++) {
-                this.board[row][column] = parentState.getBoardValue(row, column);
-            }
-        }
-    }
-
-    public BoardType[][] getBoard() {
-        return board;
-    }
+    Players turn;
 
     public int getRows() {
         return rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
     }
 
     public int getColumns() {
         return columns;
     }
 
-    public BoardType getBoardValue(int row, int column) {
-        return board[row][column];
+    public void setColumns(int columns) {
+        this.columns = columns;
     }
 
-    public void setBoardValue(int row, int column, BoardType value) {
-        board[row][column] = value;
+    public Players getTurn() {
+        return turn;
     }
 
-    /**
-     * Make move in column
-     *
-     * @param player
-     * @param column
-     */
-    public void Move(BoardType player, int column) {
-        for (int row = this.rows - 1; row >= 0; row--) {
-            if (board[row][column] == BoardType.empty) {
-                board[row][column] = player;
-                return;
+    public void setTurn(Players turn) {
+        this.turn = turn;
+    }
+
+    public Connect4State(int rows, int cols)//konstruktory
+    {
+        super(null);
+        this.rows = rows;
+        this.columns = cols;
+        board = new Players[rows][cols];
+        turn = Players.playerOne;
+        for (int i = 0; i < rows * cols; i++) {
+            board[i / cols][i % cols] = Players.empty;
+        }
+
+        computeHeuristicGrade();
+    }
+
+    public Connect4State(Connect4State parent) {
+        super(parent);
+
+        rows = parent.rows;
+        columns = parent.columns;
+        board = new Players[rows][columns];
+        turn = parent.turn;
+        for (int i = 0; i < rows * columns; i++) {
+            board[i / columns][i % columns] = parent.getBoardValue(i / columns, i % columns);
+        }
+
+        computeHeuristicGrade();
+    }
+
+    public void playersSwitch() {
+        turn = (turn == Players.playerOne ? Players.playerTwo : Players.playerOne);
+    }
+
+    public boolean makeMove(int x)//dodanie w danej kolumnie w odpowiednim wierszu
+    {
+        for (int i = 0; i < rows; i++) {
+            if (board[i][x] == Players.empty) {
+                board[i][x] = turn;
+                return true;
             }
         }
+        return false;
     }
 
-    private BoardStatus toBoardStatus(BoardType boardType) {
-        if (boardType == BoardType.empty) {
-            throw new RuntimeException("toBoardStatus do not handle BoardType.empty");
+    public void playerMove() {
+        System.out.print(this);
+        Human human = new Human();
+        int move = human.getMove(this);
+
+        makeMove(move);
+    }
+
+    public Players getBoardValue(int i, int j) {
+        return board[i][j];
+    }
+
+    private WinStatus toBoardStatus(Players Players) {
+        if (Players == Players.empty) {
+            throw new RuntimeException("toBoardStatus do not handle Players.empty");
         }
-        if (boardType == BoardType.playerOne) {
-            return BoardStatus.winnerPlayerOne;
+        if (Players == Players.playerOne) {
+            return WinStatus.winnerComputer;
         } else {
-            return BoardStatus.winnerPlayerTwo;
+            return WinStatus.winnerHumanPlayer;
         }
 
     }
 
-    @Override
-    public boolean isAdmissible() {
-        return true;
-    }
-
-    @Override
-    public double computeHeuristicGrade() {
-        double h1 = checkWin() == BoardStatus.winnerPlayerOne ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        double h2 = checkWin() == BoardStatus.winnerPlayerTwo ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-        if (h1 == Double.POSITIVE_INFINITY || h1 == Double.NEGATIVE_INFINITY) {
-            setH(h1);
-        }
-        else
-        {
-            setH(h2);
-        }
-        return this.h;
-    }
-
-    
-    
-    private void safeSequenceAdd(List<BoardType> sequence, int row, int column) {
+    private void safeSequenceAdd(List<Players> sequence, int row, int column) {
         if (row >= 0 && column >= 0 && row < this.rows && column < this.columns) {
             sequence.add(board[row][column]);
         }
     }
 
-    public BoardStatus checkWin() {
+    public WinStatus checkWin() {
 
         //Check top row
         for (int column = 0; column < this.columns; column++) {
-            if (board[0][column] != BoardType.empty) {
-                return toBoardStatus(board[0][column] );
+            if (board[this.rows-1][column] != Players.empty) {
+                return toBoardStatus(board[this.rows-1][column]);
             }
         }
-        
+
         //Check rows
         for (int row = 0; row < this.rows; row++) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int column = 0; column < this.columns; column++) {
                 safeSequenceAdd(sequence, row, column);
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
         }
 
         //Check columns
         for (int column = 0; column < this.columns; column++) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int row = 0; row < this.rows; row++) {
                 safeSequenceAdd(sequence, row, column);
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
         }
 
         //check diagonals, direction down - \
         for (int row = 0; row < this.rows; row++) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int column = 0; column < this.columns; column++) {
                 safeSequenceAdd(sequence, column + row, column);
 
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
             if (sequence.size() == 4) {
@@ -168,12 +163,12 @@ public class Connect4State extends StateImpl {
 
         //check diagonals, direction up - \
         for (int column = 0; column < this.columns; column++) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int row = 0; row < this.rows; row++) {
                 safeSequenceAdd(sequence, row, row + column);
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
             if (sequence.size() == 4) {
@@ -183,12 +178,12 @@ public class Connect4State extends StateImpl {
 
         //check diagonals, direction up /
         for (int column = this.columns - 1; column >= 0; column--) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int row = 0; row < this.rows; row++) {
                 safeSequenceAdd(sequence, row, column - row);
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
             if (sequence.size() == 4) {
@@ -197,85 +192,111 @@ public class Connect4State extends StateImpl {
         }
         //check diagonals, direction down /
         for (int row = 0; row < this.rows; row++) {
-            List<BoardType> sequence = new ArrayList<BoardType>();
+            List<Players> sequence = new ArrayList<Players>();
             for (int column = this.columns - 1; column >= 0; column--) {
                 safeSequenceAdd(sequence, row + (this.columns - column), column);
             }
-            BoardType win = checkSequence(sequence);
-            if (win != BoardType.empty) {
+            Players win = checkSequence(sequence);
+            if (win != Players.empty) {
                 return toBoardStatus(win);
             }
             if (sequence.size() == 4) {
                 break;
             }
         }
-        return BoardStatus.notEnded;
+        return WinStatus.notEnded;
     }
 
-    private BoardType checkSequence(List<BoardType> sequence) {
+    private Players checkSequence(List<Players> sequence) {
         if (sequence.size() < 4) {
-            return BoardType.empty;
+            return Players.empty;
         }
 
         for (int index = 0; index < sequence.size() - 3; index++) {
-            BoardType win = checkFour(sequence.get(index), sequence.get(index + 1),
-                    sequence.get(index + 2), sequence.get(index + 3));
-            if (win != BoardType.empty) {
+            Players win = checkFour(sequence.get(index), sequence.get(index + 1),
+                                    sequence.get(index + 2), sequence.get(index + 3));
+            if (win != Players.empty) {
                 return win;
             }
         }
-        return BoardType.empty;
+        return Players.empty;
     }
 
-    private BoardType checkFour(BoardType one, BoardType two,
-            BoardType three, BoardType four) {
-        if (one == BoardType.empty || two == BoardType.empty
-                || three == BoardType.empty || four == BoardType.empty) {
-            return BoardType.empty;
+    private Players checkFour(Players one, Players two,
+                              Players three, Players four) {
+        if (one == Players.empty || two == Players.empty
+                || three == Players.empty || four == Players.empty) {
+            return Players.empty;
         }
 
         if (one == two && two == three && three == four) {
             return one;
         }
-        return BoardType.empty;
+        return Players.empty;
+    }
+
+    @Override
+    public double computeHeuristicGrade() {
+        WinStatus winStatus = checkWin();
+        if (winStatus == WinStatus.notEnded) {
+            setH(0);
+            return 0;
+        }
+
+
+        double h1;
+        double h2;
+        h1 = winStatus == WinStatus.winnerComputer ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+        h2 = winStatus == WinStatus.winnerHumanPlayer ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+
+        if (h1 == Double.NEGATIVE_INFINITY || h1 == Double.POSITIVE_INFINITY) {
+            this.h = h1;
+        } else //setH(h2);
+        {
+            this.h = h2;
+        }
+        setH(this.h);
+        return this.h;
+    }
+
+    @Override
+    public boolean isAdmissible() {
+        return true;
     }
 
     @Override
     public String getHashCode() {
-        StringBuilder result = new StringBuilder();
+        String result = "";
         for (int i = 0; i < rows * columns; i++) {
-            result.append(board[i / columns][i % columns]).append(",");
+            result += board[i / columns][i % columns] + ",";
         }
-        return result.toString();
+        return result;
     }
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder();
-        for (int row = 0; row < rows; row++) {
-            for (int column = 0; column < columns; column++) {
-                if (board[row][column] == BoardType.playerOne) {
-                    result.append("O|");
+        StringBuilder result = new StringBuilder(rows*columns+columns);
+        for (int i = rows - 1; i >= 0; i--) {
+            for (int j = 0; j < columns; j++) {
+                if (board[i][j] == Players.playerOne) {
+                    result.append("O ");
                 } else {
-                    if (board[row][column] == BoardType.playerTwo) {
-                        result.append("X|");
+                    if (board[i][j] == Players.playerTwo) {
+                        result.append("X ");
                     } else {
-                        result.append("-|");
+                        result.append("_ ");
                     }
                 }
             }
-            result.append("\n");
+            result.append( "\n");
         }
-
-        for (int i = 1; i <= columns; i++) {
+        result.append("\n");
+        for (int i = 1; i <= columns && i != 10; i++) {
             result.append(i).append(" ");
-
         }
         if (columns == 10) {
             result.append("0 ");
-            result.append("\n");
         }
-
         return result.toString();
     }
 }

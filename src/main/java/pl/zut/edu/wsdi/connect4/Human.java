@@ -1,17 +1,17 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package pl.zut.edu.wsdi.connect4;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 /**
  *
  * @author Soltys
  */
-class Human extends Player {
+public class Human extends Player {
 
     public Human() {
     }
@@ -33,10 +33,10 @@ class Human extends Player {
                 if (column == 0) {
                     column = 10;
                 }
-                if (column<=state.getColumns()) {
-                return column - 1;    
+                if (column <= state.getColumns()) {
+                    return column - 1;
                 }
-                column =-1;
+                column = -1;
             } catch (Exception e) {
                 column = -1;
             }

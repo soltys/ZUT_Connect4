@@ -4,66 +4,83 @@
  */
 package pl.zut.edu.wsdi.connect4;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+
 /**
  *
  * @author Soltys
  */
 public class Connect4Game {
 
-    private Connect4State currentState;
-    private final Player playerOne;
-    private final Player playerTwo;
-    private Player currentPlayer;
-    private BoardType turn;
-
-    public Connect4Game(int rows, int columns, Player playerOne, Player playerTwo) {
-
-        currentState = new Connect4State(rows, columns);
-        this.playerOne = playerOne;
-        this.playerOne.setPlayerType(BoardType.playerOne);
-        this.playerTwo = playerTwo;
-        this.playerTwo.setPlayerType(BoardType.playerTwo);
-        currentPlayer = playerOne;
-    }
-
-    private void switchPlayers() {
-        if (currentPlayer == this.playerOne) {
-            currentPlayer = playerTwo;
-        } else {
-            currentPlayer = playerOne;
+    public static void main(String args[]) {
+        BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in), 1);
+        String resp = "";
+        System.out.println("Podaj ilosc wierszy: ");
+        try {
+            resp = keyboard.readLine();
+        } catch (Exception e) {
+            System.out.println("Blad czytania z klawiatury");
         }
-    }
 
-    public void playGame() {
-        BoardStatus gameStatus = BoardStatus.notEnded;
-        while (gameStatus == BoardStatus.notEnded) {
-            System.out.println(currentState);
-            int columnMove = currentPlayer.getMove(currentState);
-            currentState.Move(currentPlayer.getPlayerType(), columnMove);
-            gameStatus = currentState.checkWin();
-            switchPlayers();
+
+        int rows = Integer.parseInt(resp);
+        System.out.println("Podaj ilosc kolumn: ");
+        try {
+            resp = keyboard.readLine();
+        } catch (Exception e) {
+            System.out.println("Blad czytania z klawiatury");
         }
-        printResult(gameStatus);
-    }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        Connect4Game game = new Connect4Game(7, 7, new Human(), new Human());        
-        game.playGame();
-    }
-
-    private void printResult(BoardStatus gameStatus) {
-        System.out.println();
-        System.out.print("Result:");
-        if (gameStatus == BoardStatus.winnerPlayerOne) {
-            System.out.print("Player One Wins");
+        int cols = Integer.parseInt(resp);
+        System.out.println("zaczyna gre g/k");
+        try {
+            resp = keyboard.readLine();
+        } catch (Exception e) {
+            System.out.println("Blad czytania z klawiatury!");
+        }
+        Players player;
+        //g - gracz(player1), k- komputer(player2)
+        if (resp.equals("k")) {
+            player = Players.playerTwo;
         } else {
-            if (gameStatus == BoardStatus.winnerPlayerTwo) {
-                System.out.print("Player Two Wins");
+            player = Players.playerOne;
+        }
+
+        Connect4State game = new Connect4State(rows, cols);
+
+        if (player == Players.playerOne) {
+            game.playersSwitch();
+            game.playerMove();
+            game.playersSwitch();
+        }
+
+
+
+        do {
+            Computer computer = new Computer();
+            int computerMove = computer.getMove(game);
+            game.makeMove(computerMove);
+
+            game.playersSwitch();
+            if (game.checkWin() != WinStatus.notEnded) {
+                break;
             }
+            game.playerMove();
+            game.playersSwitch();
+
+        } while (game.checkWin() == WinStatus.notEnded);
+
+        System.out.println(game);
+        if (game.checkWin() == WinStatus.winnerComputer) {
+            System.out.println("Wygrał komputer");
         }
-        System.out.print("\n");
+        else
+        {
+            System.out.println("Wygrał gracz ");
+        }
+
+
     }
 }

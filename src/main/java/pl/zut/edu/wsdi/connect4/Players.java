@@ -8,8 +8,7 @@ package pl.zut.edu.wsdi.connect4;
  *
  * @author Soltys
  */
-public enum BoardType
-{
+public enum Players {
     empty,
     playerOne,
     playerTwo
