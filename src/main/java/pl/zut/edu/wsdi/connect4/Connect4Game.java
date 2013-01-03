@@ -43,14 +43,14 @@ public class Connect4Game {
         Players player;
         //g - gracz(player1), k- komputer(player2)
         if (resp.equals("k")) {
-            player = Players.playerTwo;
+            player = Players.playerHuman;
         } else {
-            player = Players.playerOne;
+            player = Players.playerComputer;
         }
 
         Connect4State game = new Connect4State(rows, cols);
 
-        if (player == Players.playerOne) {
+        if (player == Players.playerComputer) {
             game.playersSwitch();
             game.playerMove();
             game.playersSwitch();

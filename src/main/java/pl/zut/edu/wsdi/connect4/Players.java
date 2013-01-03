@@ -10,6 +10,6 @@ package pl.zut.edu.wsdi.connect4;
  */
 public enum Players {
     empty,
-    playerOne,
-    playerTwo
+    playerComputer,
+    playerHuman
 }

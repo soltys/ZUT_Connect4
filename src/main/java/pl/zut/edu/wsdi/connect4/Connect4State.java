@@ -45,7 +45,7 @@ public final class Connect4State extends StateImpl {
         this.rows = rows;
         this.columns = cols;
         board = new Players[rows][cols];
-        turn = Players.playerOne;
+        turn = Players.playerComputer;
         for (int i = 0; i < rows * cols; i++) {
             board[i / cols][i % cols] = Players.empty;
         }
@@ -68,7 +68,7 @@ public final class Connect4State extends StateImpl {
     }
 
     public void playersSwitch() {
-        turn = (turn == Players.playerOne ? Players.playerTwo : Players.playerOne);
+        turn = (turn == Players.playerComputer ? Players.playerHuman : Players.playerComputer);
     }
 
     public boolean makeMove(int x)//dodanie w danej kolumnie w odpowiednim wierszu
@@ -98,7 +98,7 @@ public final class Connect4State extends StateImpl {
         if (Players == Players.empty) {
             throw new RuntimeException("toBoardStatus do not handle Players.empty");
         }
-        if (Players == Players.playerOne) {
+        if (Players == Players.playerComputer) {
             return WinStatus.winnerComputer;
         } else {
             return WinStatus.winnerHumanPlayer;
@@ -116,8 +116,8 @@ public final class Connect4State extends StateImpl {
 
         //Check top row
         for (int column = 0; column < this.columns; column++) {
-            if (board[this.rows-1][column] != Players.empty) {
-                return toBoardStatus(board[this.rows-1][column]);
+            if (board[this.rows - 1][column] != Players.empty) {
+                return toBoardStatus(board[this.rows - 1][column]);
             }
         }
 
@@ -214,7 +214,7 @@ public final class Connect4State extends StateImpl {
 
         for (int index = 0; index < sequence.size() - 3; index++) {
             Players win = checkFour(sequence.get(index), sequence.get(index + 1),
-                                    sequence.get(index + 2), sequence.get(index + 3));
+                    sequence.get(index + 2), sequence.get(index + 3));
             if (win != Players.empty) {
                 return win;
             }
@@ -223,7 +223,7 @@ public final class Connect4State extends StateImpl {
     }
 
     private Players checkFour(Players one, Players two,
-                              Players three, Players four) {
+            Players three, Players four) {
         if (one == Players.empty || two == Players.empty
                 || three == Players.empty || four == Players.empty) {
             return Players.empty;
@@ -239,8 +239,26 @@ public final class Connect4State extends StateImpl {
     public double computeHeuristicGrade() {
         WinStatus winStatus = checkWin();
         if (winStatus == WinStatus.notEnded) {
-            setH(0);
-            return 0;
+            double h = 0;
+            double middle = this.columns / 2;
+            for (int row = 0; row < this.rows; row++) {
+                for (int column = 0; column < this.columns; column++) {
+                    if (board[row][column] == Players.playerComputer) {
+                        double distance = Math.abs(column - middle);
+                        if (distance <= 1.5) {
+                            h += 10;
+                        }
+                        else if (distance <= 2.5) {
+                            h += 5;
+                        }
+                        else if (distance <= 3.5) {
+                            h += 1;
+                        }
+                    }
+                }
+            }
+            setH(h);
+            return h;
         }
 
 
@@ -251,8 +269,7 @@ public final class Connect4State extends StateImpl {
 
         if (h1 == Double.NEGATIVE_INFINITY || h1 == Double.POSITIVE_INFINITY) {
             this.h = h1;
-        } else //setH(h2);
-        {
+        } else {
             this.h = h2;
         }
         setH(this.h);
@@ -275,22 +292,22 @@ public final class Connect4State extends StateImpl {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder(rows*columns+columns);
+        StringBuilder result = new StringBuilder(rows * columns + columns);
         for (int i = rows - 1; i >= 0; i--) {
             for (int j = 0; j < columns; j++) {
-                if (board[i][j] == Players.playerOne) {
+                if (board[i][j] == Players.playerComputer) {
                     result.append("O ");
                 } else {
-                    if (board[i][j] == Players.playerTwo) {
+                    if (board[i][j] == Players.playerHuman) {
                         result.append("X ");
                     } else {
                         result.append("_ ");
                     }
                 }
             }
-            result.append( "\n");
+            result.append("\n");
         }
-        result.append("\n");
+
         for (int i = 1; i <= columns && i != 10; i++) {
             result.append(i).append(" ");
         }
